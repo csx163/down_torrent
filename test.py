@@ -2,12 +2,14 @@
 import os
 from BeautifulSoup import BeautifulSoup
 from pprint import pprint
-import requests #网址分割
-from urlparse import urljoin
+import requests 
+from urlparse import urljoin #网址分割
 import time
 
+#需要分析的html目录
 dirname = r'F:\20130107\1\1月合集'
-save_dir = r'./1/'
+#torrent存放目录
+save_dir = r'./1/'
 
 for root,dirs,files in os.walk( dirname ):
     for fn in files:
@@ -18,7 +20,6 @@ for root,dirs,files in os.walk( dirname ):
         torrent_url = soup.findAll('a')
         for html_list in torrent_url:
             html_list_href = html_list.get('href')
-            #if torrent_url.find('file') > 0:  #判断链接
             if '/file.php' in html_list_href:  #判断字符是否在内
                 print html_list_href
                 try:
@@ -33,13 +34,14 @@ for root,dirs,files in os.walk( dirname ):
                 if len(torrent_get.text) < 100:
                     print "没这个种子\r\n\r\n"
                     continue
-                #print torrent_get.text
+                
                 torrent_sonp = BeautifulSoup(torrent_get.content)
                 torrent_name = torrent_sonp.find("input", id='name')['value']
                 torrent_id = torrent_sonp.find("input", id='id')['value']
                 print torrent_id, torrent_name
                 torrent_headers = {'referer': html_list_href, \
                                    'User-Agent': 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; FunWebProducts; .NET CLR 1.1.4322; PeoplePal 6.2)'}
+
                 post_data = {'type': 'torrent', 'id': torrent_id, 'name':torrent_name}
                 #提取下载链接
                 torrent_post_url = urljoin(html_list_href, '../down.php')
@@ -54,6 +56,9 @@ for root,dirs,files in os.walk( dirname ):
                                                  data=post_data,
                                                  headers=torrent_headers,
                                                  timeout=200)
+                except Exception, e:
+                    print '有错误。2'
+                    continue
                 except requests.RequestException:
                     continue
                 except requests.ConnectionError:
